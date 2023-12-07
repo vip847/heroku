@@ -1,0 +1,285 @@
+Practical no 1
+
+1. ASCII
+#Enter a text that need to convert in ascii
+text = input("Enter a text: ")
+#create a list for ascii code
+atext = [ord(x) for x in text]
+#print the output
+print("Ascii code: ", atext)
+
+2. Swap Bits
+text = input("Enter a text: ")
+btext = [format(ord(i), '08b') for i in text]
+print("Binary: ", btext)
+first4 = []
+last4 = []
+swapped = []
+def swapNibbles(btext):
+    for i in range(len(btext)):
+        first4.append(btext[i][slice(4)])
+    for i in range(len(btext)):
+        last4.append(btext[i][slice(4, 9)])
+    for i in range(len(btext)):
+        swapped.append(last4[i]+first4[i])
+    return swapped
+print("Swapped: ", swapNibbles(btext))
+
+3. Hexadecimal
+binary = int(input("Enter Binary Number: "))
+hexa = 0
+i = 1
+while binary != 0:
+    remainder = binary % 10
+    hexa += remainder * i
+    i *= 2
+    binary //= 10
+hexadecimal_value = hex(hexa).upper()
+print("Hexadecimal Value:", hexadecimal_value)
+
+
+
+Practical no 2
+
+def egcd(a, b):
+    x,y, u,v = 0,1, 1,0
+    while a != 0:
+        q, r = b//a, b%a
+        m, n = x-u*q, y-v*q
+        b,a, x,y, u,v = a,r, u,v, m,n
+    gcd = b
+    return gcd, x, y
+def modinv(a, m):
+    gcd, x, y = egcd(a, m)
+    if gcd != 1:
+        return None
+    else:
+        return x % m
+def affine_encrypt(text, key):
+    return ''.join([ chr((( key[0]*(ord(t) - ord('A')) + key[1] ) % 26) + ord('A')) for t in text.upper().replace(' ', '') ])
+
+def affine_decrypt(cipher, key):
+    return ''.join([ chr((( modinv(key[0], 26)*(ord(c) - ord('A') - key[1])) % 26) + ord('A')) for c in cipher ])
+
+text = input("Enter PlainText: ")
+key = [17, 20]
+affine_encrypted_text = affine_encrypt(text, key)
+print('Encrypted Text: {}'.format( affine_encrypted_text ))
+print('Decrypted Text: {}'.format
+( affine_decrypt(affine_encrypted_text, key) ))
+
+
+
+Practical no 3
+
+def columnar_cipher(plaintext, key):
+    key_length = len(key)
+    text_length = len(plaintext)
+    num_rows = (text_length + key_length - 1) // key_length
+    matrix = [['' for _ in range(key_length)] for _ in range(num_rows)]
+    cipher = [['' for _ in range(key_length)] for _ in range(num_rows)]
+    index = 0
+    key_num = {key[i]: i for i in range(key_length)}
+    key_sorted = sorted(key)
+    key_num_sorted = [key_num[key] for key in key_sorted]
+    for i in range(num_rows):
+        for j in range(key_length):
+            if index < text_length:
+                matrix[i][j] = plaintext[index]
+                index += 1
+            else:
+                matrix[i][j] = 'x'
+    print("\nMatrix before encryption:\n")
+    print(" ".join(key))
+    print(" ".join(str(i + 1) for i in range(key_length)))
+    for row in matrix:
+        print(" ".join(row))
+    print("\nEncrypted matrix:\n")
+    print(" ".join(key_sorted))
+    print(" ".join(str(i + 1) for i in key_num_sorted))
+    for i in range(key_length):
+        col = key_num_sorted[i]
+        for j in range(num_rows):
+            cipher[j][i] = matrix[j][col]
+    for row in cipher:
+        print(" ".join(row))
+    print("\nCipher text is:", end=" ")
+    for i in range(key_length):
+        for j in range(num_rows):
+            print(cipher[j][i], end="")
+    print()
+
+plaintext = input("Enter the plaintext: ")
+key = input("Enter the key word: ")
+columnar_cipher(plaintext, key)
+
+
+
+Practical no 4
+
+#!pip install pyDes
+import pyDes
+data = "DES Algorithm Implementation"
+k = pyDes.des("DESCRYPT", pyDes.CBC, "\0\0\0\0\0\0\0\0", pad=None,
+padmode=pyDes.PAD_PKCS5)
+d = k.encrypt(data)
+print (d)
+print (k.decrypt(d))
+print (type(k.decrypt(d)))
+
+
+
+Practical no 5.
+
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from Crypto.Random import get_random_bytes
+import base64
+def encrypt(plaintext, key):
+    cipher = AES.new(key, AES.MODE_ECB)
+    padtext = pad(plaintext, AES.block_size)
+    ctext = cipher.encrypt(padtext)
+    encodedctext= base64.b64encode(ctext)
+    return encodedctext
+def decrypt(ciphertext, key):
+    cipher = AES.new(key, AES.MODE_ECB)
+    decodedctext = base64.b64decode(ciphertext)
+    padded_plaintext = cipher.decrypt(decodedctext)
+    plaintext = unpad(padded_plaintext, AES.block_size)
+    return plaintext
+key = get_random_bytes(16)
+plaintext = input("Enter the plaintext: ").encode()
+enc= encrypt(plaintext, key)
+print("The encrypted data is:", enc)
+decrypted = decrypt(enc, key)
+print("The decrypted data is:", decrypted.decode('utf-8'))
+
+
+
+Practical no 6
+
+from math import sqrt
+import random
+from random import randint as rand
+def gcd(a, b):
+    if b == 0:
+        return a
+    else:
+        return gcd(b, a % b)
+def mod_inverse(a, m):
+    for x in range(1, m):
+        if (a * x) % m == 1:
+            return x
+    return -1
+def isprime(n):
+    if n < 2:
+        return False
+    elif n == 2:
+        return True
+    else:
+        for i in range(2, int(sqrt(n)) + 1, 2):
+            if n % i == 0:
+                return False
+    return True
+p = rand(1, 1000)
+q = rand(1, 1000)
+def generate_keypair(p, q, keysize):
+    # keysize is the bit length of n so it must be in range(nMin,nMax+1).
+    # << is bitwise operator
+    # x << y is same as multiplying x by 2**y
+    # i am doing this so that p and q values have similar bit-length.
+    # this will generate an n value that's hard to factorize into p and q.
+    nMin = 1 << (keysize - 1)
+    nMax = (1 << keysize) - 1
+    primes = [2]
+    # we choose two prime numbers in range(start, stop) so that the difference of bit lengths is at most 2.
+    start = 1 << (keysize // 2 - 1)
+    stop = 1 << (keysize // 2 + 1)
+    if start >= stop:
+        return []
+    for i in range(3, stop + 1, 2):
+        for p in primes:
+            if i % p == 0:
+                break
+        else:
+            primes.append(i)
+    while (primes and primes[0] < start):
+        del primes[0]
+    #choosing p and q from the generated prime numbers.
+    while primes:
+        p = random.choice(primes)
+        primes.remove(p)
+        q_values = [q for q in primes if nMin <= p * q <= nMax]
+        if q_values:
+            q = random.choice(q_values)
+            break
+    print(p, q)
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    #generate public key 1<e<phi(n)
+    e = random.randrange(1, phi)
+    g = gcd(e, phi)
+    while True:
+        #as long as gcd(1,phi(n)) is not 1, keep generating e
+        e = random.randrange(1, phi)
+        g = gcd(e, phi)
+        #generate private key
+        d = mod_inverse(e, phi)
+        if g == 1 and e != d:
+            break
+    #public key (e,n)
+    #private key (d,n)
+    return ((e, n), (d, n))
+
+
+def encrypt(msg_plaintext, package):
+    #unpack key value pair
+    e, n = package
+    msg_ciphertext = [pow(ord(c), e, n) for c in msg_plaintext]
+    return msg_ciphertext
+
+
+def decrypt(msg_ciphertext, package):
+    d, n = package
+    msg_plaintext = [chr(pow(c, d, n)) for c in msg_ciphertext]
+    # No need to use ord() since c is now a number
+    # After decryption, we cast it back to character
+    # to be joined in a string for the final result
+    return (''.join(msg_plaintext))
+
+
+
+bit_length = int(input("Enter bit_length: "))
+print("Running RSA...")
+print("Generating public/private keypair...")
+# 8 is the keysize (bit-length) value.
+public, private = generate_keypair(p, q, 2**bit_length)
+print("Public Key: ", public)
+print("Private Key: ", private)
+msg = input("Write msg: ")
+print([ord(c) for c in msg])
+encrypted_msg = encrypt(msg, public)
+print("Encrypted msg: ")
+print(''.join(map(lambda x: str(x), encrypted_msg)))
+print("Decrypted msg: ")
+print(decrypt(encrypted_msg, private))
+
+
+
+Practical no 7
+
+import hashlib
+msg = input("Enter the Message: ")
+result = hashlib.md5(msg.encode())
+print("Hash Value: ", result)
+print("Equivalent Bytes: ", result.digest())
+print("Equivalent Hexadecimal: ", result.hexdigest())
+
+
+
+Practical no 8
+
+import hashlib
+plainText = input("Enter PlainText: ")
+result = hashlib.sha1(plainText.encode())
+print("SHA-1 Encryption : ", result.hexdigest())
